@@ -1,0 +1,15 @@
+# Experiment 2 (Dr. Zhou's suggestion): covariate shift and k-shot adaptation.
+name: shift
+experiment: shift
+seed: 0
+repeats: 10
+n_test: 1000           # target-domain test rows
+quantile: 0.6          # source = bottom 60% along the shift direction
+shift_kinds: [pc1, feature]   # oblique vs axis-aligned shift
+source_sizes: [300, 1000]
+k_shots: [0, 10, 30, 100, 300]
+models: [rf, xgb, mlp, tabpfn]
+device: cpu
+datasets:
+  - suite: 337
+    max_datasets: 8

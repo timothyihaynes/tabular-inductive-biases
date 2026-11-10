@@ -1,0 +1,15 @@
+# Fast end-to-end check (~1 min on a laptop, no downloads). Synthetic data only.
+name: smoke
+experiment: nsweep
+seed: 0
+repeats: 2
+n_test: 500
+train_sizes: [100, 300]
+models: [rf, xgb, mlp, tabpfn]
+datasets:
+  - synthetic: {n: 3000, d: 8, smooth: false, oblique: false, seed: 0}
+perturbations:
+  smooth_lengthscales: [0.2]
+  add_noise_fracs: [1.0]
+  drop_fracs: [0.5]
+  rotate: true

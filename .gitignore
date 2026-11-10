@@ -1,0 +1,14 @@
+__pycache__/
+*.egg-info/
+.venv/
+data_cache/
+results/*.csv
+results/*.png
+!results/.gitkeep
+.DS_Store
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.pdf

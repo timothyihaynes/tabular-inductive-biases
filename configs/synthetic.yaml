@@ -1,0 +1,12 @@
+# Experiment 3: 2x2 {smooth, jumpy} x {axis-aligned, oblique}, across n.
+name: synthetic
+experiment: synthetic
+seed: 0
+n_functions: 5         # independent ground-truth functions per cell (replication unit)
+repeats: 5
+pool_size: 5000
+n_test: 2000
+train_sizes: [100, 300, 1000, 3000]
+models: [rf, xgb, mlp, tabpfn]
+device: cpu
+synthetic: {d: 10, k_informative: 3, temperature: 0.25}

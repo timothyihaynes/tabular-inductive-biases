@@ -1,0 +1,21 @@
+# Experiment 1: how does training size change which inductive biases matter?
+# Grinsztajn's three diagnostics x training size x model.
+name: nsweep
+experiment: nsweep
+seed: 0
+repeats: 10            # paired subsamples per (dataset, n)
+n_test: 2000
+train_sizes: [100, 300, 1000, 3000]
+models: [rf, xgb, mlp, tabpfn]
+device: cpu            # "cuda" or "mps" speeds up TabPFN if available
+max_n_per_model: {}    # e.g. {tabpfn: 3000} to cap expensive models
+datasets:
+  # Grinsztajn et al. benchmark, classification on numerical features.
+  # Run `python scripts/list_datasets.py` to see names, then filter with `names:`.
+  - suite: 337
+    max_datasets: 8
+perturbations:
+  smooth_lengthscales: [0.2, 0.4, 0.8]    # bandwidth as a fraction of median pairwise distance
+  add_noise_fracs: [0.5, 1.0]             # added noise features, as a fraction of d
+  drop_fracs: [0.25, 0.5]                 # least-important features removed
+  rotate: true
