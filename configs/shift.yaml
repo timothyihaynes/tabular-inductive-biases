@@ -11,5 +11,11 @@ k_shots: [0, 10, 30, 100, 300]
 models: [rf, xgb, mlp, tabpfn]
 device: cpu
 datasets:
+  # Week 1 pick: 8 datasets from the Grinsztajn clf-num suite, chosen so every
+  # dataset has enough rows for n = 3000 plus the test set (wine and phoneme
+  # do not) and d stays small enough for TabPFN with added noise features
+  # (Bioresponse, d = 419, does not). Check the names against
+  # `python scripts/list_datasets.py` (the runner warns about names it can't find).
   - suite: 337
-    max_datasets: 8
+    names: [kdd_ipums_la_97-small, eye_movements, pol, bank-marketing,
+            MagicTelescope, house_16H, credit, electricity]

@@ -1,0 +1,17 @@
+# Week 1: baseline n-sweep, no perturbations, 3 repeats.
+# Uses name "nsweep" on purpose: rows go to results/nsweep.csv, and because each
+# repeat's split depends only on (seed, repeat), the full Experiment 1 run
+# (configs/nsweep.yaml, 10 repeats) reuses these rows instead of recomputing them.
+# Keep seed, n_test, train_sizes and datasets identical to nsweep.yaml.
+name: nsweep
+experiment: nsweep
+seed: 0
+repeats: 3
+n_test: 2000
+train_sizes: [100, 300, 1000, 3000]
+models: [rf, xgb, mlp, tabpfn]
+device: cpu            # try "mps" on Apple Silicon if TabPFN is slow
+datasets:
+  - suite: 337
+    names: [kdd_ipums_la_97-small, eye_movements, pol, bank-marketing,
+            MagicTelescope, house_16H, credit, electricity]
