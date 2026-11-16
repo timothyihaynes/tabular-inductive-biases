@@ -243,6 +243,9 @@ EXPERIMENTS = dict(nsweep=run_nsweep, shift=run_shift, synthetic=run_synthetic)
 
 
 def main(argv=None) -> None:
+    import faulthandler
+
+    faulthandler.enable()  # on a crash (e.g. segfault), print where it happened
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
     ap.add_argument("--out", default=None, help="CSV path (default results/<name>.csv)")
