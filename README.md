@@ -29,7 +29,9 @@ pytest -q                       # ~15 s, no downloads
 
 **macOS notes.** Use Python 3.10 or newer (the built-in 3.9 is too old;
 `uv venv --python 3.12` is an easy way to get one). XGBoost needs the OpenMP
-runtime: `brew install libomp`. If a model fails to load, the runner prints
+runtime: `brew install libomp`. On macOS the package sets
+`KMP_DUPLICATE_LIB_OK=TRUE` and `OMP_NUM_THREADS=1` on import, because
+otherwise torch and XGBoost load two OpenMP copies and TabPFN segfaults. If a model fails to load, the runner prints
 `[skip]` and continues without it. If `python -m tib.run` says
 `No module named 'tib'` (this happens with editable installs inside an
 iCloud-synced folder such as ~/Documents), run
