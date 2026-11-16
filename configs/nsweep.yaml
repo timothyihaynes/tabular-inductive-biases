@@ -10,10 +10,14 @@ models: [rf, xgb, mlp, tabpfn]
 device: cpu            # "cuda" or "mps" speeds up TabPFN if available
 max_n_per_model: {}    # e.g. {tabpfn: 3000} to cap expensive models
 datasets:
-  # Grinsztajn et al. benchmark, classification on numerical features.
-  # Run `python scripts/list_datasets.py` to see names, then filter with `names:`.
+  # Week 1 pick: 8 datasets from the Grinsztajn clf-num suite, chosen so every
+  # dataset has enough rows for n = 3000 plus the test set (wine and phoneme
+  # do not) and d stays small enough for TabPFN with added noise features
+  # (Bioresponse, d = 419, does not). Check the names against
+  # `python scripts/list_datasets.py` (the runner warns about names it can't find).
   - suite: 337
-    max_datasets: 8
+    names: [kdd_ipums_la_97-small, eye_movements, pol, bank-marketing,
+            MagicTelescope, house_16H, credit, electricity]
 perturbations:
   smooth_lengthscales: [0.2, 0.4, 0.8]    # bandwidth as a fraction of median pairwise distance
   add_noise_fracs: [0.5, 1.0]             # added noise features, as a fraction of d

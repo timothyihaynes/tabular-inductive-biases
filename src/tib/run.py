@@ -89,6 +89,9 @@ def resolve_datasets(cfg: dict) -> list:
         elif "suite" in entry:
             tab = list_benchmark_tasks(entry["suite"])
             if "names" in entry:
+                missing = sorted(set(entry["names"]) - set(tab.name))
+                if missing:
+                    print(f"[warn] not in suite {entry['suite']}: {missing}")
                 tab = tab[tab.name.isin(entry["names"])]
             tab = tab.head(entry.get("max_datasets", len(tab)))
             out += [lambda i=i: load_openml(i) for i in tab.dataset_id]
