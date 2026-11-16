@@ -108,8 +108,14 @@ class _QuietMLP:
 
 
 def model_available(name: str) -> bool:
+    """False if the model's package is missing or fails to load.
+
+    Catches more than ImportError on purpose: e.g. XGBoost on macOS raises
+    XGBoostError when the OpenMP runtime (libomp) is not installed.
+    """
     try:
         make_model(name, seed=0)
         return True
-    except ImportError:
+    except Exception as e:  # noqa: BLE001
+        print(f"[skip] {name}: {type(e).__name__}: {str(e).strip().splitlines()[0]}")
         return False

@@ -27,6 +27,15 @@ pip install -e ".[tabpfn,dev]"
 pytest -q                       # ~15 s, no downloads
 ```
 
+**macOS notes.** Use Python 3.10 or newer (the built-in 3.9 is too old;
+`uv venv --python 3.12` is an easy way to get one). XGBoost needs the OpenMP
+runtime: `brew install libomp`. If a model fails to load, the runner prints
+`[skip]` and continues without it. If `python -m tib.run` says
+`No module named 'tib'` (this happens with editable installs inside an
+iCloud-synced folder such as ~/Documents), run
+`echo 'export PYTHONPATH="'$PWD'/src"' >> .venv/bin/activate` and re-activate,
+or keep the project outside iCloud.
+
 TabPFN downloads its weights from Hugging Face on first use. Recent `tabpfn`
 versions may ask you to accept the model license or log in once. It runs on CPU
 for small n, and `device: mps` (Apple silicon) or `cuda` is faster.

@@ -134,8 +134,6 @@ def active_models(cfg: dict) -> list[str]:
     for m in cfg["models"]:
         if model_available(m):
             ms.append(m)
-        else:
-            print(f"[skip] model {m!r} not installed")
     return ms
 
 
