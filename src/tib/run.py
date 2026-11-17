@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import argparse
 import time
+import warnings
 import zlib
 from pathlib import Path
 
@@ -249,6 +250,8 @@ def main(argv=None) -> None:
     import faulthandler
 
     faulthandler.enable()  # on a crash (e.g. segfault), print where it happened
+    # TabPFN repeats this on every CPU fit with n > 1000; once is enough to know.
+    warnings.filterwarnings("once", message="Running on CPU with more than")
     ap = argparse.ArgumentParser()
     ap.add_argument("--config", required=True)
     ap.add_argument("--out", default=None, help="CSV path (default results/<name>.csv)")

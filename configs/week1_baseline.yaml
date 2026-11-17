@@ -13,5 +13,5 @@ models: [rf, xgb, mlp, tabpfn]
 device: cpu            # try "mps" on Apple Silicon if TabPFN is slow
 datasets:
   - suite: 337
-    names: [kdd_ipums_la_97-small, eye_movements, pol, bank-marketing,
+    names: [heloc, eye_movements, pol, bank-marketing,
             MagicTelescope, house_16H, credit, electricity]

@@ -16,7 +16,7 @@ datasets:
   # (Bioresponse, d = 419, does not). Check the names against
   # `python scripts/list_datasets.py` (the runner warns about names it can't find).
   - suite: 337
-    names: [kdd_ipums_la_97-small, eye_movements, pol, bank-marketing,
+    names: [heloc, eye_movements, pol, bank-marketing,
             MagicTelescope, house_16H, credit, electricity]
 perturbations:
   smooth_lengthscales: [0.2, 0.4, 0.8]    # bandwidth as a fraction of median pairwise distance
