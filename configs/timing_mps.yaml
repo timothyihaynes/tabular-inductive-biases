@@ -1,0 +1,14 @@
+# Quick TabPFN speed check at the sizes that matter (about 2-5 minutes).
+# Same test-set size as the real experiments. Compare the `seconds` column with
+# the CPU numbers from the week 1 baseline (results/nsweep.csv, eye_movements).
+name: timing_mps
+experiment: nsweep
+seed: 0
+repeats: 1
+n_test: 2000
+train_sizes: [1000, 3000]
+models: [tabpfn]
+device: mps
+datasets:
+  - suite: 337
+    names: [eye_movements]
