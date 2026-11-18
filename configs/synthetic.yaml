@@ -8,5 +8,5 @@ pool_size: 5000
 n_test: 2000
 train_sizes: [100, 300, 1000, 3000]
 models: [rf, xgb, mlp, tabpfn]
-device: cpu
+device: mps            # Apple GPU: ~5x faster TabPFN at n = 3000. Use "cpu" elsewhere; keep one device per results file.
 synthetic: {d: 10, k_informative: 3, temperature: 0.25}

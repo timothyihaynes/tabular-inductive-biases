@@ -9,7 +9,7 @@ shift_kinds: [pc1, feature]   # oblique vs axis-aligned shift
 source_sizes: [300, 1000]
 k_shots: [0, 10, 30, 100, 300]
 models: [rf, xgb, mlp, tabpfn]
-device: cpu
+device: mps            # Apple GPU: ~5x faster TabPFN at n = 3000. Use "cpu" elsewhere; keep one device per results file.
 datasets:
   # Week 1 pick: 8 datasets from the Grinsztajn clf-num suite, chosen so every
   # dataset has enough rows for n = 3000 plus the test set (wine and phoneme
