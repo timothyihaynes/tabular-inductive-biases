@@ -72,3 +72,15 @@ def test_synthetic_runs(tmp_path):
     out = tmp_path / "y.csv"
     run.main(["--config", str(cfg), "--out", str(out)])
     assert len(pd.read_csv(out)) == 4 * 2
+
+
+def test_drop_features_removes_and_renames():
+    import numpy as np
+
+    from tib.data import Dataset, drop_features
+
+    d = Dataset("toy", np.arange(12.0).reshape(4, 3), np.array([0, 1, 0, 1]), ("a", "id", "b"))
+    out = drop_features(d, ["id"])
+    assert out.name == "toy-id"
+    assert out.features == ("a", "b")
+    assert np.array_equal(out.X, d.X[:, [0, 2]])
