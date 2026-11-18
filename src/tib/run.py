@@ -23,7 +23,14 @@ import yaml
 from sklearn.metrics import accuracy_score, log_loss, roc_auc_score
 
 from . import perturb, shift, synthetic
-from .data import Dataset, list_benchmark_tasks, load_openml, split_pool_test, subsample
+from .data import (
+    Dataset,
+    drop_features,
+    list_benchmark_tasks,
+    load_openml,
+    split_pool_test,
+    subsample,
+)
 from .models import Preprocessor, make_model, model_available
 
 ROOT = Path(__file__).resolve().parents[2]
@@ -100,6 +107,18 @@ def resolve_datasets(cfg: dict) -> list:
             out.append(lambda kw=entry["synthetic"]: synthetic.make_synthetic(**kw))
         else:
             raise ValueError(entry)
+    # Optional per-dataset column removal: drop_features: {eye_movements: [lineNo]}
+    drops = cfg.get("drop_features") or {}
+    if drops:
+
+        def with_drop(load):
+            def f():
+                data = load()
+                return drop_features(data, drops[data.name]) if data.name in drops else data
+
+            return f
+
+        out = [with_drop(load) for load in out]
     return out
 
 

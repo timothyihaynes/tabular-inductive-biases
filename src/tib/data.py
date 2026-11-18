@@ -26,6 +26,7 @@ class Dataset:
     name: str
     X: np.ndarray  # (n, d) float
     y: np.ndarray  # (n,) int labels in {0, 1}
+    features: tuple[str, ...] | None = None  # column names, when known
 
     @property
     def n(self) -> int:
@@ -67,10 +68,10 @@ def load_openml(dataset_id: int) -> Dataset:
     offline after the first download.
     """
     CACHE_DIR.mkdir(exist_ok=True)
-    cache = CACHE_DIR / f"openml_{dataset_id}.npz"
+    cache = CACHE_DIR / f"openml_{dataset_id}_v2.npz"  # v2: also stores column names
     if cache.exists():
         z = np.load(cache, allow_pickle=False)
-        return Dataset(str(z["name"]), z["X"], z["y"])
+        return Dataset(str(z["name"]), z["X"], z["y"], tuple(str(f) for f in z["features"]))
 
     import openml
 
@@ -78,6 +79,7 @@ def load_openml(dataset_id: int) -> Dataset:
         dataset_id, download_data=True, download_qualities=False
     )
     X, y, _, _ = ds.get_data(target=ds.default_target_attribute)
+    features = tuple(str(c) for c in X.columns)
     X = X.apply(pd.to_numeric, errors="coerce").to_numpy(dtype=np.float64)
     keep = ~np.isnan(X).any(axis=1)
     X, y = X[keep], np.asarray(y)[keep]
@@ -85,8 +87,24 @@ def load_openml(dataset_id: int) -> Dataset:
     if len(classes) != 2:
         raise ValueError(f"{ds.name}: expected binary target, got {len(classes)} classes")
     y = (y == classes[1]).astype(np.int64)
-    np.savez_compressed(cache, name=ds.name, X=X, y=y)
-    return Dataset(ds.name, X, y)
+    np.savez_compressed(cache, name=ds.name, X=X, y=y, features=np.array(features))
+    return Dataset(ds.name, X, y, features)
+
+
+def drop_features(data: Dataset, drop: list[str]) -> Dataset:
+    """Remove named columns, e.g. an ID that leaks the label under a random split.
+
+    The dataset is renamed (``eye_movements`` -> ``eye_movements-lineNo``) so its
+    results never mix with rows from the full version in a resumable CSV.
+    """
+    if data.features is None:
+        raise ValueError(f"{data.name}: column names unknown, cannot drop {drop}")
+    missing = sorted(set(drop) - set(data.features))
+    if missing:
+        raise ValueError(f"{data.name}: no columns named {missing}")
+    keep = [j for j, f in enumerate(data.features) if f not in drop]
+    name = data.name + "".join(f"-{c}" for c in drop)
+    return Dataset(name, data.X[:, keep], data.y, tuple(data.features[j] for j in keep))
 
 
 def split_pool_test(

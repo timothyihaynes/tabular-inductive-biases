@@ -15,3 +15,8 @@ datasets:
   - suite: 337
     names: [heloc, eye_movements, pol, bank-marketing,
             MagicTelescope, house_16H, credit, electricity]
+# eye_movements: lineNo is a row index, and labels come in blocks along it, so
+# under a random split it leaks the label (1-NN on lineNo alone: 0.71 accuracy
+# vs 0.50 chance). Dropped; results are logged as "eye_movements-lineNo".
+drop_features:
+  eye_movements: [lineNo]

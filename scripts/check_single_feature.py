@@ -24,17 +24,8 @@ from tib.data import load_openml, split_pool_test, subsample
 did = int(sys.argv[1]) if len(sys.argv) > 1 else 44130
 n = int(sys.argv[2]) if len(sys.argv) > 2 else 3000
 
-try:  # feature names, for readability (needs OpenML metadata, cached after first use)
-    import openml
-
-    ds = openml.datasets.get_dataset(did, download_data=False, download_qualities=False)
-    names = [f.name for f in ds.features.values() if f.name != ds.default_target_attribute]
-except Exception:  # noqa: BLE001
-    names = None
-
 data = load_openml(did)
-if names is None or len(names) != data.d:
-    names = [f"x{j}" for j in range(data.d)]
+names = list(data.features) if data.features else [f"x{j}" for j in range(data.d)]
 rng = np.random.default_rng([0, 0])
 pool, test = split_pool_test(data, 2000, rng)
 tr = subsample(pool, data.y, n, rng)
