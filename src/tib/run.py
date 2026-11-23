@@ -55,10 +55,18 @@ def score(y_true: np.ndarray, proba: np.ndarray) -> dict:
 
 def fit_score(model_name, Xtr, ytr, Xte, yte, seed, device):
     t0 = time.perf_counter()
+    if len(np.unique(ytr)) < 2:
+        # Heavy label smoothing can turn every training label into one class.
+        # No model can learn from that; predict the only class seen, for every
+        # model alike, and flag the row so the analysis can count or drop it.
+        p1 = np.full(len(yte), float(ytr[0]))
+        out = score(yte, np.column_stack([1 - p1, p1]))
+        out.update(seconds=time.perf_counter() - t0, degenerate=True)
+        return out
     m = make_model(model_name, seed=seed, device=device)
     m.fit(Xtr, ytr)
     out = score(yte, m.predict_proba(Xte))
-    out["seconds"] = time.perf_counter() - t0
+    out.update(seconds=time.perf_counter() - t0, degenerate=False)
     return out
 
 
@@ -67,17 +75,31 @@ class ResultWriter:
         self.path, self.key_cols = path, key_cols
         path.parent.mkdir(parents=True, exist_ok=True)
         self.done = set()
+        self.columns: list[str] | None = None
         if path.exists():
             old = pd.read_csv(path)
+            self.columns = list(old.columns)
             self.done = set(map(tuple, old[key_cols].astype(str).to_numpy()))
 
     def seen(self, row: dict) -> bool:
         return tuple(str(row[c]) for c in self.key_cols) in self.done
 
     def write(self, row: dict) -> None:
-        pd.DataFrame([row]).to_csv(
-            self.path, mode="a", header=not self.path.exists(), index=False
-        )
+        new = pd.DataFrame([row])
+        if self.columns is not None and set(row) - set(self.columns):
+            # A newer version of the code logs an extra column: rewrite the file
+            # once with the wider header (old rows get NaN there), so appended
+            # rows never fall out of line with the header.
+            full = pd.concat([pd.read_csv(self.path), new], ignore_index=True)
+            full.to_csv(self.path, index=False)
+            self.columns = list(full.columns)
+        elif self.columns is not None:
+            new.reindex(columns=self.columns).to_csv(
+                self.path, mode="a", header=False, index=False
+            )
+        else:
+            new.to_csv(self.path, index=False)
+            self.columns = list(new.columns)
         self.done.add(tuple(str(row[c]) for c in self.key_cols))
 
 

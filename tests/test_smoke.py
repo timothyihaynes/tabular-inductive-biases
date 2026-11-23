@@ -84,3 +84,36 @@ def test_drop_features_removes_and_renames():
     assert out.name == "toy-id"
     assert out.features == ("a", "b")
     assert np.array_equal(out.X, d.X[:, [0, 2]])
+
+
+def test_single_class_training_set_is_handled():
+    import numpy as np
+
+    from tib.run import fit_score
+
+    rng = np.random.default_rng(0)
+    X, Xte = rng.normal(size=(50, 3)), rng.normal(size=(20, 3))
+    yte = np.array([0, 1] * 10)
+    out = fit_score("rf", X, np.ones(50, dtype=int), Xte, yte, seed=0, device="cpu")
+    assert out["degenerate"] and out["acc"] == 0.5
+    # MLP with a single minority example: early stopping must switch off.
+    y = np.zeros(100, dtype=int)
+    y[0] = 1
+    X = rng.normal(size=(100, 3))
+    out = fit_score("mlp", X, y, Xte, yte, seed=0, device="cpu")
+    assert not out["degenerate"]
+
+
+def test_result_writer_widens_header(tmp_path):
+    import pandas as pd
+
+    from tib.run import ResultWriter
+
+    p = tmp_path / "r.csv"
+    pd.DataFrame([{"k": 1, "acc": 0.5}]).to_csv(p, index=False)
+    w = ResultWriter(p, ["k"])
+    w.write({"k": 2, "acc": 0.6, "degenerate": False})
+    w.write({"k": 3, "acc": 0.7, "degenerate": True})
+    df = pd.read_csv(p)
+    assert list(df.columns) == ["k", "acc", "degenerate"] and len(df) == 3
+    assert w.seen({"k": 1})
