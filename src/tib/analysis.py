@@ -54,10 +54,16 @@ def summarize(df: pd.DataFrame, value: str, group: list[str]) -> pd.DataFrame:
 
 def paired_model_test(df: pd.DataFrame, a: str, b: str, metric: str = "acc",
                       by: list[str] = ("n",)) -> pd.DataFrame:
-    """Wilcoxon signed-rank test of model a vs b across datasets, per group.
+    """Paired comparison of model a vs b across datasets, per group.
 
-    Use Holm-Bonferroni (``holm``) when reporting several of these at once,
-    as the TabPFN paper did.
+    Returns the mean difference a - b with a 95% t-interval across datasets,
+    the number of datasets where a beats b (``wins``), and a two-sided Wilcoxon
+    signed-rank p-value. Only the pre-specified comparisons in
+    docs/analysis_plan.md get a p-value in the write-up (Holm within each
+    experiment); report the rest as effect sizes with intervals.
+
+    With N datasets the smallest possible Wilcoxon p is 2 / 2**N (0.0078 for
+    N = 8, 0.0625 for N = 5), which bounds how many tests a family can hold.
     """
     by = list(by)
     keys = ["dataset"] + by
@@ -67,8 +73,10 @@ def paired_model_test(df: pd.DataFrame, a: str, b: str, metric: str = "acc",
     for g, sub in wide.groupby(by):
         d = (sub[a] - sub[b]).dropna().to_numpy()
         p = stats.wilcoxon(d).pvalue if len(d) >= 5 and np.any(d != 0) else np.nan
+        m, lo, hi = mean_ci(d) if len(d) else (np.nan, np.nan, np.nan)
         rows.append(dict(zip(by, g if isinstance(g, tuple) else (g,)),
-                         mean_diff=d.mean() if len(d) else np.nan, n_datasets=len(d), p=p))
+                         mean_diff=m, lo=lo, hi=hi, wins=int((d > 0).sum()),
+                         n_datasets=len(d), p=p))
     return pd.DataFrame(rows)
 
 

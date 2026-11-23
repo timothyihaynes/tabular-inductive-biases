@@ -62,8 +62,10 @@ with a small `repeats` and `max_datasets` to check timings, then scale up.
 - **Paired comparisons.** Every model sees the same training subsample and the
   same test set, for each (dataset, repeat, n, perturbation).
 - **Replication unit = dataset.** Repeats are averaged within a dataset first,
-  then CIs and Wilcoxon tests are computed across datasets. Use Holm-Bonferroni
-  for multiple comparisons, as the TabPFN paper does.
+  then CIs and Wilcoxon tests are computed across datasets. Each experiment has
+  a small family of tests fixed in advance (Holm within the family), and every
+  other comparison is reported as an effect size with an interval. See
+  [docs/analysis_plan.md](docs/analysis_plan.md).
 - **No per-dataset hyperparameter tuning.** Fixed defaults for every model.
   This favors TabPFN, which needs no tuning, and is a limitation to discuss.
   Grinsztajn et al. tune extensively.

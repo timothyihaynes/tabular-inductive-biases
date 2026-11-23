@@ -2,8 +2,8 @@
 name: synthetic
 experiment: synthetic
 seed: 0
-n_functions: 5         # independent ground-truth functions per cell (replication unit)
-repeats: 5
+n_functions: 10        # ground-truth functions per cell (replication unit). 10, not 5: with 5 the smallest Wilcoxon p is 0.0625 (docs/analysis_plan.md)
+repeats: 3
 pool_size: 5000
 n_test: 2000
 train_sizes: [100, 300, 1000, 3000]
