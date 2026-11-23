@@ -95,8 +95,11 @@ class _QuietMLP:
         self.mlp = mlp
 
     def fit(self, X, y):
-        # Early stopping needs a few validation points from each class.
-        if X.shape[0] < 60:
+        # Early stopping holds out a stratified 10% validation split, which needs
+        # at least 2 rows of each class, and a handful to be meaningful. Small n,
+        # or a rare class (e.g. after heavy label smoothing), turns it off.
+        minority = int(np.bincount(np.asarray(y, dtype=np.int64)).min()) if len(np.unique(y)) > 1 else 0
+        if X.shape[0] < 60 or minority < 20:
             self.mlp.set_params(early_stopping=False, max_iter=500)
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
