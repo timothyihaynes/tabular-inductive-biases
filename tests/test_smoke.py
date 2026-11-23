@@ -117,3 +117,13 @@ def test_result_writer_widens_header(tmp_path):
     df = pd.read_csv(p)
     assert list(df.columns) == ["k", "acc", "degenerate"] and len(df) == 3
     assert w.seen({"k": 1})
+
+
+def test_paired_model_test_reports_interval_and_wins():
+    import pandas as pd
+    rows = [dict(dataset=f"d{i}", n=100, model=m, acc=0.7 + 0.01 * i + (0.02 if m == "a" else 0))
+            for i in range(6) for m in ("a", "b")]
+    t = analysis.paired_model_test(pd.DataFrame(rows), "a", "b", "acc", by=["n"])
+    r = t.iloc[0]
+    assert r.wins == 6 and r.n_datasets == 6
+    assert abs(r.mean_diff - 0.02) < 1e-12 and r.lo <= r.mean_diff <= r.hi

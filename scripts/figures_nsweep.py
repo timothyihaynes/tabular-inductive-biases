@@ -11,8 +11,9 @@ Writes to out_dir (default: results/figures/):
                          "bigger n" (at a fixed bandwidth, larger n flips more)
   fig4_rotate_by_dataset.png  rotation drop per dataset (one dataset can
                          dominate the average)
-  tables.md              the numbers behind the figures, plus paired
-                         Wilcoxon tests of TabPFN vs each baseline (Holm)
+  tables.md              the numbers behind the figures, the 4 primary
+                         TabPFN-vs-RF tests (Holm), and effect sizes with
+                         intervals for everything else
 """
 import sys
 from pathlib import Path
@@ -61,17 +62,33 @@ for metric in ["acc", "auc"]:
     md.append(f"\n## Baseline {metric}\n\n"
               + t.pivot(index="model", columns="n", values="cell").loc[ORDER].to_markdown())
 
-tests = []
-for b in ["rf", "xgb", "mlp"]:
-    t = paired_model_test(base, "tabpfn", b, "acc", by=["n"])
-    t["comparison"] = f"tabpfn - {b}"
-    tests.append(t)
-tests = pd.concat(tests, ignore_index=True)
-tests["p_holm"] = holm(tests.p.to_numpy())
-md.append("\n\n## TabPFN vs baselines, accuracy (Wilcoxon across datasets, Holm over all "
-          f"{len(tests)} tests)\n\n"
-          + tests[["comparison", "n", "mean_diff", "n_datasets", "p", "p_holm"]]
+# Primary tests, fixed in docs/analysis_plan.md: TabPFN vs RF at each n, Holm
+# over these 4 only. Everything else is reported as an effect size with a
+# 95% t-interval across datasets and a win count, without p-values.
+primary = paired_model_test(base, "tabpfn", "rf", "acc", by=["n"])
+primary["p_holm"] = holm(primary.p.to_numpy())
+primary["ci"] = primary.apply(
+    lambda r: f"{100*r.mean_diff:+.1f} [{100*r.lo:+.1f}, {100*r.hi:+.1f}]", axis=1)
+primary["wins"] = primary.wins.astype(str) + "/" + primary.n_datasets.astype(str)
+md.append("\n\n## Primary tests: TabPFN - RF, accuracy\n\n"
+          "Mean difference in points with 95% t-interval across datasets; wins = datasets "
+          "where TabPFN is ahead. Two-sided Wilcoxon signed-rank across datasets, Holm over "
+          f"these {len(primary)} tests only. Note: this family was fixed after Experiment 1 "
+          "had been run (see docs/analysis_plan.md).\n\n"
+          + primary[["n", "ci", "wins", "p", "p_holm"]]
+          .rename(columns={"ci": "TabPFN - RF (points)"})
           .round(4).to_markdown(index=False))
+eff = []
+for b in ["xgb", "mlp"]:
+    t = paired_model_test(base, "tabpfn", b, "acc", by=["n"])
+    t["cell"] = t.apply(lambda r: f"{100*r.mean_diff:+.1f} [{100*r.lo:+.1f}, "
+                        f"{100*r.hi:+.1f}], {int(r.wins)}/{int(r.n_datasets)}", axis=1)
+    t["comparison"] = f"tabpfn - {b}"
+    eff.append(t)
+eff = pd.concat(eff, ignore_index=True)
+md.append("\n\n## Secondary comparisons, accuracy (effect sizes, no tests)\n\n"
+          "Mean difference in points [95% t-interval across datasets], then wins.\n\n"
+          + eff.pivot(index="comparison", columns="n", values="cell").to_markdown())
 
 # --- Figure 2: perturbation drop vs n
 s = summarize(drop, "delta", ["perturbation", "level", "model", "n"])
